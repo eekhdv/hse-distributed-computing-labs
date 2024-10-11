@@ -1,12 +1,12 @@
 CC=gcc
 STD=c17
 
-CFLAGS=-std=$(STD) -O3
+CFLAGS=-std=$(STD) -O3 -Werror -Wall
 
 SRC_DIR=src
 OUT_DIR=bin
 
-SRC=$(SRC_DIR)/main.c 
+SRC=$(SRC_DIR)/main.c $(SRC_DIR)/lab1.c
 OUT=$(OUT_DIR)/main.o
 
 

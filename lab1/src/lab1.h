@@ -16,7 +16,7 @@ typedef struct
   uint64_t tid;
 
   point_t* points_arr;
-  uint16_t arr_size;
+  uint64_t arr_size;
 } pthread_args_t;
 
 

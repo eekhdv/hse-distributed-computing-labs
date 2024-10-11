@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
 
   srand(time(NULL));
 
-  thread_count = strtol(argv[1], NULL, 10);
-  throw_count  = strtol(argv[2], NULL, 10);
+  thread_count = strtoll(argv[1], NULL, 10);
+  throw_count  = strtoll(argv[2], NULL, 10);
 
   thread_count = thread_count >= (throw_count >> 1) ? 1 : thread_count;
 
@@ -48,8 +48,7 @@ int main(int argc, char *argv[])
   }
 
   uint64_t single_thread_arr_size = throw_count / thread_count;
-  uint64_t last_thread_arr_size   = thread_count == 1 ? 0 : single_thread_arr_size + (throw_count % thread_count);
-  printf("%ld====\n", last_thread_arr_size);
+  uint64_t last_thread_arr_size   = single_thread_arr_size + (thread_count == 1 ? 0 : throw_count % thread_count);
 
   for (uint64_t i = 0; i < thread_count; i++)
   {
@@ -68,13 +67,11 @@ int main(int argc, char *argv[])
     uint64_t* res;
 
     pthread_join(thread_handler[i], (void**)&res);
-    printf("%ld ", *res);
     circle_points += ((uint64_t)*res);
 
     free(res);
   }
 
-  printf("\n");
   printf("pi = %lf", (4.0 * (double_t)circle_points) / throw_count);
 
   free(pointers_arr);

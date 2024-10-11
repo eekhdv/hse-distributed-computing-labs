@@ -1,5 +1,6 @@
 #include "lab1.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 double_t get_randpoint()

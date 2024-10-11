@@ -20,6 +20,4 @@ typedef struct
 } pthread_args_t;
 
 
-double_t get_randpoint();
-
-void* routine(void* vargs);
+int monte_carlo(int argc, char *argv[]);

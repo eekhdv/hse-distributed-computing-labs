@@ -1,13 +1,13 @@
 CC=gcc
 STD=c17
 
-CFLAGS=-std=$(STD) -O3 -Werror -Wall
+CFLAGS=-std=$(STD) -O3 -Werror -Wall -lm -pthread
 
 SRC_DIR=src
 OUT_DIR=bin
 
 SRC_MONTE_CARLO=$(SRC_DIR)/main.c $(SRC_DIR)/monte-carlo.c
-SRC_MANDELBROT=$(SRC_DIR)/main.c
+SRC_MANDELBROT=$(SRC_DIR)/main.c $(SRC_DIR)/mandelbrot.c
 SRC_RWLOCK=$(SRC_DIR)/main.c
 
 OUT_MONTE_CARLO=$(OUT_DIR)/monte-carlo.o

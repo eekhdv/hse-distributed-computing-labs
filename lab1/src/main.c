@@ -6,14 +6,17 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "lab1.h"
+#ifdef MONTE_CARLO
+#include "monte-carlo.h"
+#endif /* ifdef MONTE_CARLO */
 
 
 static inline void freep(void *p) {
   free(*(void **) p);
 }
 
-int main(int argc, char *argv[])
+#ifdef MONTE_CARLO
+int monte_carlo(int argc, char *argv[])
 {
   static point_t* pointers_arr;
   uint64_t thread_count, throw_count;
@@ -75,6 +78,21 @@ int main(int argc, char *argv[])
   printf("pi = %lf", (4.0 * (double_t)circle_points) / throw_count);
 
   free(pointers_arr);
+  return EXIT_SUCCESS;
+}
+#endif
+
+int main(int argc, char *argv[])
+{
+#ifdef MONTE_CARLO
+  if (monte_carlo(argc, argv) != 0) return EXIT_FAILURE;
+#elif MANDELBROT
+  printf("MANDELBROT Hello world!\n");
+#elif RWLOCK
+  printf("RWLOCK Hello world!\n");
+#else
+  printf("Hello world!\n");
+#endif
 
   return EXIT_SUCCESS;
 }

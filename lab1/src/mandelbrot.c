@@ -116,8 +116,10 @@ int mandelbrot(int argc, char *argv[])
   {
     fprintf(stderr, "Cannot open file %s\n", "output.csv");
   }
+  fclose(file);
 
   pthread_mutex_destroy(&g_mutex);
+  free(g_mandelbrot_points_arr);
 
   return EXIT_SUCCESS;
 }

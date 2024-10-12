@@ -123,6 +123,10 @@ int main(int argc, char* argv[]) {
    printf("\n");
 #  endif
 
+   pthread_cond_destroy(&my_rwlock.r_cv);
+   pthread_cond_destroy(&my_rwlock.w_cv);
+   pthread_mutex_destroy(&my_rwlock.mutex);
+
    Free_list();
    pthread_rwlock_destroy(&rwlock);
    pthread_mutex_destroy(&count_mutex);

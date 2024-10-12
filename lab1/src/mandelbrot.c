@@ -104,9 +104,17 @@ int mandelbrot(int argc, char *argv[])
     pthread_join(thread_handler[i], NULL);
   }
 
-  for (uint64_t i = 0; i < g_mandelbrot_npoints; i++)
+  FILE* file = fopen("output.csv", "w");
+  if (file != NULL)
   {
-    printf("%lf + %lfi\n", creal(g_mandelbrot_points_arr[i]), cimag(g_mandelbrot_points_arr[i]));
+    for (uint64_t i = 0; i < g_mandelbrot_npoints; i++)
+    {
+      fprintf(file, "(%lf, %lf)\n", creal(g_mandelbrot_points_arr[i]), cimag(g_mandelbrot_points_arr[i]));
+    }
+  }
+  else
+  {
+    fprintf(stderr, "Cannot open file %s\n", "output.csv");
   }
 
   pthread_mutex_destroy(&g_mutex);

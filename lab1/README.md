@@ -20,6 +20,7 @@ cd bin
 
 ### How to run
 ```sh
+cd bin
 ./monte-carlo.o # run 1. monte-carlo 
 ./mandelbrot.o  # run 2. mandelbrot
 ./rwlock.o      # run 3. rwlock implementation

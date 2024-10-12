@@ -12,22 +12,12 @@
 #include "mandelbrot.h"
 #endif /* ifdef MANDELBROT */
 
-#ifdef RWLOCK
-int rwlock(int argc, char *argv[])
-{
-  printf("RWLOCK Hello World!\n");
-  return EXIT_SUCCESS;
-}
-#endif /* ifdef RWLOCK */
-
 int main(int argc, char *argv[])
 {
 #if defined(MONTE_CARLO)
   if (monte_carlo(argc, argv) != 0) return EXIT_FAILURE;
 #elif defined(MANDELBROT)
   if (mandelbrot(argc, argv) != 0) return EXIT_FAILURE;
-#elif defined(RWLOCK)
-  if (rwlock(argc, argv) != 0) return EXIT_FAILURE;
 #else
   printf("Hello world!\n");
 #endif

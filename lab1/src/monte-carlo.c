@@ -42,7 +42,7 @@ void* routine(void* vargs)
 
 int monte_carlo(int argc, char *argv[])
 {
-  static point_t* pointers_arr;
+  static point_t* points_arr;
   uint64_t thread_count, throw_count;
   uint64_t circle_points = 0;
   double start, finish;
@@ -63,8 +63,8 @@ int monte_carlo(int argc, char *argv[])
   __attribute__((cleanup(freep)))
   pthread_t* thread_handler = malloc(thread_count * sizeof(pthread_t));
 
-  pointers_arr = (void*)malloc(sizeof(point_t) * throw_count);
-  memset((void*)pointers_arr, 0, sizeof(point_t) * throw_count);
+  points_arr = (void*)malloc(sizeof(point_t) * throw_count);
+  memset((void*)points_arr, 0, sizeof(point_t) * throw_count);
 
   for (uint64_t i = 0; i < throw_count; i++)
   {
@@ -72,7 +72,7 @@ int monte_carlo(int argc, char *argv[])
       .x = get_randpoint(),
       .y = get_randpoint()
     };
-    pointers_arr[i] = p;
+    points_arr[i] = p;
   }
 
   uint64_t single_thread_arr_size = throw_count / thread_count;
@@ -89,7 +89,7 @@ int monte_carlo(int argc, char *argv[])
     pthread_args_t* args = thread_args_arr + i;
     args->tid        = i;
     args->arr_size   = i == (thread_count - 1) ? last_thread_arr_size : single_thread_arr_size;
-    args->points_arr = pointers_arr + (i * single_thread_arr_size);
+    args->points_arr = points_arr + (i * single_thread_arr_size);
   }
 
   GET_TIME(start);
@@ -112,9 +112,9 @@ int monte_carlo(int argc, char *argv[])
     free(result[i]);
   }
 
-  printf("pi = %lf\n", (4.0 * (double_t)circle_points) / throw_count);
+  printf("pi = %lf\n", 4.0 * ((double_t)circle_points / throw_count));
   printf("tooks %es [ %ld threads, %ld throws ]\n", (finish - start), thread_count, throw_count);
 
-  free(pointers_arr);
+  free(points_arr);
   return EXIT_SUCCESS;
 }

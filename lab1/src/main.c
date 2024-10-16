@@ -4,23 +4,23 @@
 #include <pthread.h>
 #include <sys/types.h>
 
-#ifdef MONTE_CARLO
-#include "monte-carlo.h"
-#endif /* ifdef MONTE_CARLO */
 
-#ifdef MANDELBROT
+#if defined(MONTE_CARLO)
+#include "monte-carlo.h"
+int (*func)(int, char*[]) = &monte_carlo;
+#elif defined(MANDELBROT)
 #include "mandelbrot.h"
+int (*func)(int, char*[]) = &mandelbrot;
+#else
+int (*func)(int, char*[]) = NULL;
 #endif /* ifdef MANDELBROT */
+
 
 int main(int argc, char *argv[])
 {
-#if defined(MONTE_CARLO)
-  if (monte_carlo(argc, argv) != 0) return EXIT_FAILURE;
-#elif defined(MANDELBROT)
-  if (mandelbrot(argc, argv) != 0) return EXIT_FAILURE;
-#else
-  printf("Hello world!\n");
-#endif
+  if (func) {
+    if ((*func)(argc, argv) != 0) return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }

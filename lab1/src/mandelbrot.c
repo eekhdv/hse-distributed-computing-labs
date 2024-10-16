@@ -128,7 +128,7 @@ int mandelbrot(int argc, char *argv[])
   fclose(file);
 
   printf("See result in the ./output.csv\n");
-  printf("tooks %es [%ld threads, %ld points]\n", (finish - start), thread_count, g_npoints);
+  printf("tooks %lfs [ %ld threads, %ld points ]\n", (finish - start), thread_count, g_npoints);
 
   pthread_mutex_destroy(&g_mutex);
   free(g_mandelbrot_points_arr);

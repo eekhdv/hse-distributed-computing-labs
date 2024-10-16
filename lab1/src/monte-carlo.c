@@ -37,7 +37,6 @@ void* routine(void* vargs)
   }
   *res = circle_points;
 
-  free(vargs);
   return (void*)res;
 }
 
@@ -79,32 +78,42 @@ int monte_carlo(int argc, char *argv[])
   uint64_t single_thread_arr_size = throw_count / thread_count;
   uint64_t last_thread_arr_size   = single_thread_arr_size + (thread_count == 1 ? 0 : throw_count % thread_count);
 
-  GET_TIME(start);
+  __attribute__((cleanup(freep)))
+  pthread_args_t* thread_args_arr = malloc(thread_count * sizeof(pthread_args_t));
+
+  __attribute__((cleanup(freep)))
+  uint64_t** result = malloc(thread_count * sizeof(uint64_t*));
+
   for (uint64_t i = 0; i < thread_count; i++)
   {
-    pthread_args_t* args = (pthread_args_t*)malloc(sizeof(pthread_args_t));
+    pthread_args_t* args = thread_args_arr + i;
     args->tid        = i;
     args->arr_size   = i == (thread_count - 1) ? last_thread_arr_size : single_thread_arr_size;
     args->points_arr = pointers_arr + (i * single_thread_arr_size);
+  }
 
-    uint8_t err = pthread_create(thread_handler + i, NULL, routine, (void*)args);
+  GET_TIME(start);
+  for (uint64_t i = 0; i < thread_count; i++)
+  {
+    uint8_t err = pthread_create(thread_handler + i, NULL, routine, (void*)&thread_args_arr[i]);
     if (err)
       fprintf(stderr, "Error while creating %lu pthread\n", i);
   }
 
   for (uint64_t i = 0; i < thread_count; i++)
   {
-    uint64_t* res;
-
-    pthread_join(thread_handler[i], (void**)&res);
-    circle_points += ((uint64_t)*res);
-
-    free(res);
+    pthread_join(thread_handler[i], (void**)&result[i]);
   }
   GET_TIME(finish);
 
-  printf("pi = %lf", (4.0 * (double_t)circle_points) / throw_count);
-  printf("tooks %es [%ld threads, %ld throws]", (finish - start), thread_count, throw_count);
+  for (uint64_t i = 0; i < thread_count; i++)
+  {
+    circle_points += *result[i];
+    free(result[i]);
+  }
+
+  printf("pi = %lf\n", (4.0 * (double_t)circle_points) / throw_count);
+  printf("tooks %es [%ld threads, %ld throws]\n", (finish - start), thread_count, throw_count);
 
   free(pointers_arr);
   return EXIT_SUCCESS;

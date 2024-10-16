@@ -62,7 +62,6 @@ void* routine(void* vargs)
     }
     if (g_mandelbrot_npoints >= g_npoints) break;
   }
-  free(vargs);
   pthread_exit(NULL);
 }
 
@@ -90,14 +89,20 @@ int mandelbrot(int argc, char *argv[])
 
   pthread_mutex_init(&g_mutex, NULL);
 
-  GET_TIME(start);
+  __attribute__((cleanup(freep)))
+  pthread_args_t* thread_args_arr = malloc(thread_count * sizeof(pthread_args_t));
   for (uint64_t i = 0; i < thread_count; i++)
   {
-    pthread_args_t* args = (pthread_args_t*)malloc(sizeof(pthread_args_t));
+    pthread_args_t* args = thread_args_arr + i;
     args->tid     = i;
     args->x_start = -2.0 + x_part_size * i;
     args->x_end   = args->x_start + x_part_size;
-    uint8_t err = pthread_create(thread_handler + i, NULL, routine, (void*)args);
+  }
+
+  GET_TIME(start);
+  for (uint64_t i = 0; i < thread_count; i++)
+  {
+    uint8_t err = pthread_create(thread_handler + i, NULL, routine, (void*)&thread_args_arr[i]);
     if (err)
       fprintf(stderr, "Error while creating %lu pthread\n", i);
   }
@@ -121,7 +126,9 @@ int mandelbrot(int argc, char *argv[])
     fprintf(stderr, "Cannot open file %s\n", "output.csv");
   }
   fclose(file);
-  printf("tooks %es [%ld threads, %ld points]", (finish - start), thread_count, g_npoints);
+
+  printf("See result in the ./output.csv\n");
+  printf("tooks %es [%ld threads, %ld points]\n", (finish - start), thread_count, g_npoints);
 
   pthread_mutex_destroy(&g_mutex);
   free(g_mandelbrot_points_arr);

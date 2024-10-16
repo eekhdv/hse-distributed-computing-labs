@@ -9,7 +9,7 @@
 #include <semaphore.h>
 
 #include "monte-carlo.h"
-
+#include "timer.h"
 
 static inline void freep(void *p) {
   free(*(void **) p);
@@ -46,6 +46,7 @@ int monte_carlo(int argc, char *argv[])
   static point_t* pointers_arr;
   uint64_t thread_count, throw_count;
   uint64_t circle_points = 0;
+  double start, finish;
 
   if (argc != 3)
   {
@@ -78,6 +79,7 @@ int monte_carlo(int argc, char *argv[])
   uint64_t single_thread_arr_size = throw_count / thread_count;
   uint64_t last_thread_arr_size   = single_thread_arr_size + (thread_count == 1 ? 0 : throw_count % thread_count);
 
+  GET_TIME(start);
   for (uint64_t i = 0; i < thread_count; i++)
   {
     pthread_args_t* args = (pthread_args_t*)malloc(sizeof(pthread_args_t));
@@ -99,8 +101,10 @@ int monte_carlo(int argc, char *argv[])
 
     free(res);
   }
+  GET_TIME(finish);
 
   printf("pi = %lf", (4.0 * (double_t)circle_points) / throw_count);
+  printf("tooks %es [%ld threads, %ld throws]", (finish - start), thread_count, throw_count);
 
   free(pointers_arr);
   return EXIT_SUCCESS;

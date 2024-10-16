@@ -9,6 +9,7 @@
 #include <complex.h>
 
 #include "mandelbrot.h"
+#include "timer.h"
 
 static uint64_t g_npoints;
 
@@ -69,6 +70,7 @@ void* routine(void* vargs)
 int mandelbrot(int argc, char *argv[])
 {
   uint64_t thread_count;
+  double start, finish;
 
   if (argc != 3)
   {
@@ -88,6 +90,7 @@ int mandelbrot(int argc, char *argv[])
 
   pthread_mutex_init(&g_mutex, NULL);
 
+  GET_TIME(start);
   for (uint64_t i = 0; i < thread_count; i++)
   {
     pthread_args_t* args = (pthread_args_t*)malloc(sizeof(pthread_args_t));
@@ -103,6 +106,7 @@ int mandelbrot(int argc, char *argv[])
   {
     pthread_join(thread_handler[i], NULL);
   }
+  GET_TIME(finish);
 
   FILE* file = fopen("output.csv", "w");
   if (file != NULL)
@@ -117,6 +121,7 @@ int mandelbrot(int argc, char *argv[])
     fprintf(stderr, "Cannot open file %s\n", "output.csv");
   }
   fclose(file);
+  printf("tooks %es [%ld threads, %ld points]", (finish - start), thread_count, g_npoints);
 
   pthread_mutex_destroy(&g_mutex);
   free(g_mandelbrot_points_arr);

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 monte_test(){
-  ./monte-carlo.o $1 $2 | xargs -d'\n' -n2 sh -c 'echo "$2"' argv0 | xargs -n100 sh -c 'printf "[%7d] : $10s\t" $6 $2' argv0
+  ./monte-carlo.o $1 $2 | xargs -d'\n' -n2 sh -c 'echo "$2"' argv0 | xargs -n100 sh -c 'printf "[%9d] : %10s\t" $6 $2' argv0
 }
 
 mandelbrot_test(){

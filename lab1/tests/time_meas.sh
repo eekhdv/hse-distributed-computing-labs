@@ -29,9 +29,9 @@ echo -e "${GREEN}Monte-Carlo tests${NC}"
 for i in {1..8}
 do
     echo -en "${GREEN}$i threads: ${NC}"
-    for j in {1..4}
+    for j in {0..3}
     do
-      pnum=$(shuf -i $(( 100000 * ($j ** 2) ))-$(( 1000000 * ($j ** 2) )) -n 1)
+      pnum=$(shuf -i $(( 10000 * (10 ** $j) ))-$(( 100000 * (10 ** $j) )) -n 1)
       monte_test $i $pnum
     done
     echo ""

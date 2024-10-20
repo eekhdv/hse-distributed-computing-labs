@@ -113,7 +113,7 @@ int monte_carlo(int argc, char *argv[])
   }
 
   printf("pi = %lf\n", 4.0 * ((double_t)circle_points / throw_count));
-  printf("tooks %es [ %ld threads, %ld throws ]\n", (finish - start), thread_count, throw_count);
+  printf("tooks %lfs [ %ld threads, %ld throws ]\n", (finish - start), thread_count, throw_count);
 
   free(points_arr);
   return EXIT_SUCCESS;

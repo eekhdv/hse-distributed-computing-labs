@@ -2,6 +2,13 @@
 
 ---
 
+## My laptop specs
+
+CPU: AMD Ryzen 5 3500U (4 cores, 8 threads)\
+RAM: 6 GiB\
+Kernel: 6.10.10-zen1-1-zen x86_64 64-bit\
+Compiler: gcc 14.2.1
+
 ## lab 1
 
 ### pi calculation (Monte-Carlo method)
@@ -20,6 +27,9 @@ I  create an array of points,  which I fill with random  points  (x,  y). I give
   ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/monte-carlo.png)
 </details>
 
+#### Results Interpretation
+As you can see in the screenshot, for a small number of throws (~88,000), there is almost no difference in performance between different numbers of threads, but when the number of throws becomes larger (~474,000), the speed of operation in multi-thread mode is slightly less than when using 1 thread. The speed differs very slightly, since we work with a one-dimensional array, which is a trivial task and parallelizing such a simple task is not very effective
+
 ### Mandelbrot set 
 
 `./src/mandelbrot.c`
@@ -35,6 +45,9 @@ I have created global variables for all threads, one contains the number of poin
 
   ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/mandelbrot.png)
 </details>
+
+#### Results Interpretation
+As we can see in the screenshot above, when searching for even a small number of points, parallelization across streams gives significant results. And indeed, our task is to sort through the points according to a certain mathematical rule and check them for entry into the Mandelbrot set. In this task, parallelization works quite efficiently (more than 2 times faster), since each thread begins to look for points in its own uniquely allocated place.
 
 ### read-write lock implementation (pthread)
 

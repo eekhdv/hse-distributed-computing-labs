@@ -6,8 +6,8 @@ else
 STD=c17
 endif
 
-ifeq ($(TARGET), RWLOCK)
-FLAGS=
+ifeq ($(VERSION), MY_RWLOCK)
+FLAGS=-DMY_RWLOCK
 endif
 
 ifeq ($(TARGET), MONTE_CARLO)
@@ -39,7 +39,11 @@ endif
 
 ifeq ($(TARGET), RWLOCK)
 SRC=$(SRC_DIR)/pth_ll_rwl/rwlock.c $(SRC_DIR)/pth_ll_rwl/my_rand.c $(SRC_DIR)/pth_ll_rwl/pth_ll_rwl.c
+ifeq ($(VERSION), MY_RWLOCK)
+OUT=$(OUT_DIR)/my_rwlock.o
+else
 OUT=$(OUT_DIR)/rwlock.o
+endif
 endif
 
 all: $(SRC)

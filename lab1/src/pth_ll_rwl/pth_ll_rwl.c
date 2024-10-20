@@ -76,9 +76,10 @@ int main(int argc, char* argv[]) {
 #  endif
 
    thread_handles = malloc(thread_count*sizeof(pthread_t));
+#ifndef MY_RWLOCK
    pthread_mutex_init(&count_mutex, NULL);
    pthread_rwlock_init(&rwlock, NULL);
-
+#else
    pthread_cond_init(&my_rwlock.r_cv, NULL);
    pthread_cond_init(&my_rwlock.w_cv, NULL);
    pthread_mutex_init(&my_rwlock.mutex, NULL);
@@ -86,7 +87,9 @@ int main(int argc, char* argv[]) {
    my_rwlock.r_locked_c = 0;
    my_rwlock.rlock_wait_c = 0;
    my_rwlock.wlock_wait_c = 0;
+#endif
 
+#ifndef MY_RWLOCK
    GET_TIME(start);
    for (i = 0; i < thread_count; i++)
       pthread_create(&thread_handles[i], NULL, Thread_work, (void*) i);
@@ -99,11 +102,7 @@ int main(int argc, char* argv[]) {
    printf("member ops = %d\n", member_count);
    printf("insert ops = %d\n", insert_count);
    printf("delete ops = %d\n", delete_count);
-
-  member_count = 0;
-  insert_count = 0;
-  delete_count = 0;
-
+#else
    GET_TIME(start);
    for (i = 0; i < thread_count; i++)
       pthread_create(&thread_handles[i], NULL, My_Thread_work, (void*) i);
@@ -116,6 +115,7 @@ int main(int argc, char* argv[]) {
    printf("[MY] member ops = %d\n", member_count);
    printf("[MY] insert ops = %d\n", insert_count);
    printf("[MY] delete ops = %d\n", delete_count);
+#endif
 
 #  ifdef OUTPUT
    printf("After threads terminate, list = \n");
@@ -123,13 +123,16 @@ int main(int argc, char* argv[]) {
    printf("\n");
 #  endif
 
+   Free_list();
+
+#ifndef MY_RWLOCK
+   pthread_rwlock_destroy(&rwlock);
+   pthread_mutex_destroy(&count_mutex);
+#else
    pthread_cond_destroy(&my_rwlock.r_cv);
    pthread_cond_destroy(&my_rwlock.w_cv);
    pthread_mutex_destroy(&my_rwlock.mutex);
-
-   Free_list();
-   pthread_rwlock_destroy(&rwlock);
-   pthread_mutex_destroy(&count_mutex);
+#endif
    free(thread_handles);
 
    return 0;

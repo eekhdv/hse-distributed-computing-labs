@@ -11,3 +11,5 @@ make -f Makefile
 echo -e "\033[0;32mBuild 3. rwlock implementation\033[0m"
 export TARGET=RWLOCK
 make -f Makefile
+export VERSION=MY_RWLOCK
+make -f Makefile

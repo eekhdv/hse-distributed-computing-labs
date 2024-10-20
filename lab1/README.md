@@ -13,6 +13,13 @@
 ##### How did I parallelize the algorithm:
 I  create an array of points,  which I fill with random  points  (x,  y). I give each  thread  a  pointer  to a part of this  array  and a sub-size  equal to the number of points  to  process.  After  that,  each  thread  starts  working  with the points,  performing the check  operation `x^2 + y^2 <= 1` and, depending on this, increasing the counter for the number of points in the circle. In the end, I take the resulting number from each thread and calculate the number pi.
 
+##### Test results
+<details>
+  <summary>Screenshots</summary>
+
+  ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/monte-carlo.png)
+</details>
+
 ### Mandelbrot set 
 
 `./src/mandelbrot.c`
@@ -21,6 +28,13 @@ I  create an array of points,  which I fill with random  points  (x,  y). I give
 
 ##### How did I parallelize the task:
 I have created global variables for all threads, one contains the number of points found, and the other variable is an array with points. As soon as the required number of points is typed, all threads stop working. At the beginning, depending on the number of threads, I calculate x_start and x_end - these are variables that limit the scope of the search for Mandelbrot points for each thread. They are calculated in such a way that none of the threads iterates over the numbers that another thread could iterate over. Also, after finding the number, the thread locks mutex and changes the global variable with the number of points and the array of points.
+
+##### Test results
+<details>
+  <summary>Screenshots</summary>
+
+  ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/mandelbrot.png)
+</details>
 
 ### read-write lock implementation (pthread)
 
@@ -47,6 +61,18 @@ Increasing the counter for the number of waiting readers. I'm waiting for the wr
 `unlock()`:
 
 If rwlock is a writer, then I remove the writer's blocking flag. If the number of waiting writers is greater than 0, then I notify them. If there are no waiting writers, then I notify all waiting readers. If the rwlock was blocked by the reader, then if the reader is not the last, then I simply decrease the reader counter, and if it is the last reader, then I inform the writers that the stream is released.
+
+##### Test results
+<details>
+  <summary>Screenshots</summary>
+
+  
+   | My rwlock          |  rwlock |
+   :-------------------------:|:-------------------------:
+   1 thread ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/my_rwlock_1.png) | 1 thread ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/rwlock_1.png)
+   8 threads ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/my_rwlock_2.png) | 8 threads ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/rwlock_2.png)
+   4 threads ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/my_rwlock_3.png) | 4 threads ![](https://github.com/eekhdv/hse-distributed-computing-labs/blob/lab1/results/lab1/results/rwlock_3.png)
+</details>
 
 
 ### how to build

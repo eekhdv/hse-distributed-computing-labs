@@ -29,9 +29,9 @@ int is_mandelbrotset(double complex c)
   for (uint16_t i = 0; i < 4000; i++)
   {
     z = z * z + c;
-    if (cabs(z) >= 2.0) return 1;
+    if (cabs(z) >= 2.0) return 0;
   }
-  return 0;
+  return 1;
 }
 
 void* routine(void* vargs)
@@ -45,7 +45,7 @@ void* routine(void* vargs)
     for (double_t y = -1; y < 1; y += 0.00015)
     {
       c = x + y * I;
-      if (is_mandelbrotset(c) == 0)
+      if (is_mandelbrotset(c))
       {
         pthread_mutex_lock(&g_mutex);
         if (g_mandelbrot_npoints >= g_npoints)

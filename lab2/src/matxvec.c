@@ -1,19 +1,13 @@
 #include "matxvec.h"
 
 #include <math.h>
+#include <mpi.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-enum split
-{
-  Row,
-  Column,
-  Block
-};
 
-
-double_t _sum_vec(const double_t* const vector, uint32_t n)
+double_t _sum_vec(double_t* const vector, uint32_t n)
 {
   double_t res = 0;
 
@@ -23,13 +17,13 @@ double_t _sum_vec(const double_t* const vector, uint32_t n)
   return res;
 }
 
-void _mul_col_by_const(const double_t** const matrix, double_t* out, double_t digit, uint32_t rows, uint32_t col_num)
+void _mul_col_by_const(double_t** const matrix, double_t* out, double_t digit, uint32_t rows, uint32_t col_num)
 {
   for (uint32_t row = 0; row < rows; row++)
     out[row] += (matrix[row][col_num] * digit);
 }
 
-double_t _mul_row_by_col(const double_t* const row, const double_t* const col, uint32_t n)
+double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_t n)
 {
   double_t res = 0;
 
@@ -39,17 +33,18 @@ double_t _mul_row_by_col(const double_t* const row, const double_t* const col, u
   return res;
 }
 
-
-void _row_split_mul(const double_t** const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols)
+void _row_split_mul(double_t** const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
-#pragma omp parallel for
-  for (uint32_t row = 0; row < rows; row++)
+  double_t local_res = 0;
+  for (uint32_t col = 0; col < cols; col++)
   {
-    out[row] = _mul_row_by_col(matrix[row], vector, cols);
+    local_res += matrix[rank][col] * vector[col];
+    /* local_res = _mul_row_by_col(matrix[row], vector, cols); */
   }
+  MPI_Gather(&local_res, 1, MPI_DOUBLE, out, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 }
 
-void _column_split_mul(const double_t** const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols)
+void _column_split_mul(double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
   double_t** cols_vector = malloc(sizeof(double_t*) * cols);
   for (uint32_t col = 0; col < cols; col++)
@@ -58,13 +53,11 @@ void _column_split_mul(const double_t** const matrix, const double_t* const vect
     memset(cols_vector, 0, sizeof(double_t) * rows);
   }
 
-#pragma omp parallel for
   for (uint32_t col = 0; col < cols; col++)
   {
     _mul_col_by_const(matrix, cols_vector[col], vector[col], rows, col);
   }
 
-#pragma omp parallel for
   for (uint32_t row = 0; row < rows; row++)
   {
     for (uint32_t col = 0; col < cols; col++)
@@ -80,7 +73,7 @@ void _column_split_mul(const double_t** const matrix, const double_t* const vect
   free(cols_vector);
 }
 
-void _block_split_mul(const double_t** const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols)
+void _block_split_mul(double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
   uint32_t rows_half = rows / 2;
   uint32_t cols_half = cols / 2;
@@ -111,19 +104,19 @@ void _block_split_mul(const double_t** const matrix, const double_t* const vecto
   free(prev_out);
 }
 
-void mul_mat_by_vec(enum split method, const double_t** const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols)
+void mul_mat_by_vec(enum split method, double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
   switch (method)
   {
   case Row:
-    _row_split_mul(matrix, vector, out, rows, cols);
+    _row_split_mul(matrix, vector, out, rows, cols, rank, comm_size);
     break;
   case Column:
-    _column_split_mul(matrix, vector, out, rows, cols);
+    _column_split_mul(matrix, vector, out, rows, cols, rank, comm_size);
     break;
   case Block:
     if (rows % 2 == 0)
-      _block_split_mul(matrix, vector, out, rows, cols);
+      _block_split_mul(matrix, vector, out, rows, cols, rank, comm_size);
     break;
   }
 }

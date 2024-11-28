@@ -29,7 +29,7 @@ double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_
 {
   double_t res = 0;
 
-  for (uint32_t i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++) 
     res += (row[i] * col[i]);
 
   return res;
@@ -52,35 +52,40 @@ void _column_split_mul(double_t** const matrix, double_t* const vector, double_t
   free(res_vec);
 }
 
-void _block_split_mul(double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
+void _block_split_mul(double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank)
 {
   uint32_t rows_half = rows / 2;
   uint32_t cols_half = cols / 2;
   /* 0 ... rows_half - 1 rows_half ... rows - 1 */
   /* 0 ... cols_half - 1 cols_half ... cols - 1 */
-  double_t* prev_out = malloc(rows * sizeof(double_t));
-  double_t* upper_out = prev_out;
-  double_t* lower_out = prev_out + rows_half;
-  memset(upper_out, 0, rows * sizeof(double_t));
+  double_t* cur_out = malloc(rows * sizeof(double_t));
+  memset(cur_out, 0, rows * sizeof(double_t));
 
-  for (uint32_t row = 0; row < rows_half; row++)
-  {
-    upper_out[row] += _mul_row_by_col(matrix[row], vector, cols_half);
-    lower_out[row] += _mul_row_by_col(matrix[row] + cols_half, vector + cols_half, cols_half);
+  uint32_t row_start = 0, row_end = rows_half, offset = 0;
+
+  switch (rank) {
+    case 0: // 0
+      offset = cols_half;
+      break;
+    case 1: // 1
+      break;
+    case 2: // 
+      row_start = rows_half;
+      row_end = rows;
+      break;
+    case 3:
+      row_start = rows_half;
+      row_end = rows;
+      offset = cols_half;
+      break;
   }
 
-  for (uint32_t row = rows_half; row < rows; row++)
-  {
-    upper_out[row] += _mul_row_by_col(matrix[row], vector, cols_half);
-    lower_out[row] += _mul_row_by_col(matrix[row] + cols_half, vector + cols_half, cols_half);
-  }
+  for (uint32_t row = row_start; row < row_end; row++)
+    cur_out[row] += _mul_row_by_col(matrix[row] + offset, vector + offset, cols_half);
 
-  for (uint32_t row = 0; row < rows; row++)
-  {
-    out[row] = prev_out[row];
-  }
+  MPI_Reduce(cur_out, out, rows, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
-  free(prev_out);
+  free(cur_out);
 }
 
 void mul_mat_by_vec(enum split method, double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
@@ -94,8 +99,8 @@ void mul_mat_by_vec(enum split method, double_t** const matrix, double_t* const 
     _column_split_mul(matrix, vector, out, rows, cols, rank, comm_size);
     break;
   case Block:
-    if (rows % 2 == 0)
-      _block_split_mul(matrix, vector, out, rows, cols, rank, comm_size);
+    if (comm_size == 4)
+      _block_split_mul(matrix, vector, out, rows, cols, rank);
     break;
   }
 }

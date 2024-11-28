@@ -1,8 +1,9 @@
-#include "matxvec.h"
+#include "../inc/matxvec.h"
 
 #include <math.h>
 #include <mpi.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,10 +18,11 @@ double_t _sum_vec(double_t* const vector, uint32_t n)
   return res;
 }
 
-void _mul_col_by_const(double_t** const matrix, double_t* out, double_t digit, uint32_t rows, uint32_t col_num)
+void _mul_col_by_const(double_t** const matrix, double_t* out, double_t digit, uint32_t rows, int32_t rank)
 {
-  for (uint32_t row = 0; row < rows; row++)
-    out[row] += (matrix[row][col_num] * digit);
+  for (uint32_t row = 0; row < rows; row++) {
+    out[row] = matrix[row][rank] * digit;
+  }
 }
 
 double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_t n)
@@ -41,31 +43,13 @@ void _row_split_mul(double_t** const matrix, const double_t* const vector, doubl
 
 void _column_split_mul(double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
-  double_t** cols_vector = malloc(sizeof(double_t*) * cols);
-  for (uint32_t col = 0; col < cols; col++)
-  {
-    cols_vector[col] = malloc(sizeof(double_t) * rows);
-    memset(cols_vector, 0, sizeof(double_t) * rows);
-  }
+  double_t* res_vec = malloc(rows * sizeof(double_t));
+  memset(res_vec, 0, rows * sizeof(double_t));
 
-  for (uint32_t col = 0; col < cols; col++)
-  {
-    _mul_col_by_const(matrix, cols_vector[col], vector[col], rows, col);
-  }
+  _mul_col_by_const(matrix, res_vec, vector[rank], rows, rank);
 
-  for (uint32_t row = 0; row < rows; row++)
-  {
-    for (uint32_t col = 0; col < cols; col++)
-    {
-      out[row] += cols_vector[col][row];
-    }
-  }
-
-  for (uint32_t row = 0; row < rows; row++)
-  {
-    free(cols_vector[row]);
-  }
-  free(cols_vector);
+  MPI_Reduce(res_vec, out, rows, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+  free(res_vec);
 }
 
 void _block_split_mul(double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)

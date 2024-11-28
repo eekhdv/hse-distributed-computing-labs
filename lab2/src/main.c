@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/types.h>
 
@@ -14,7 +15,7 @@ int32_t comm_size = -1, rank = -1;
 
 void input_vector_row_div(double_t* v, uint32_t n)
 {
-  if(rank == 0 )
+  if (rank == 0)
   {
     for (uint32_t i = 0 ; i < n ; i++)
     {
@@ -79,8 +80,10 @@ int main(int argc, char *argv[])
     input_vector_row_div(matrix[row], cols);
   }
 
-  if (rank == 0)
+  if (rank == 0) {
     out_vec = malloc(rows * sizeof(double_t));
+    memset(out_vec, 0, rows * sizeof(double_t));
+  }
 
   if (rank == 0) {
     printf("\nMatrix (%dx%d):\n", rows, cols);
@@ -99,9 +102,10 @@ int main(int argc, char *argv[])
   /************************/
   MPI_Barrier(MPI_COMM_WORLD);
 
-  mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
+  // mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
+  mul_mat_by_vec(Column, matrix, vec, out_vec, rows, cols, rank, comm_size);
+  //mul_mat_by_vec(Block, matrix, vec, out_vec, rows, cols, rank, comm_size);
 
-  MPI_Barrier(MPI_COMM_WORLD);
   if (rank == 0) {
     printf("\nResult vector (%dx1):\n", rows);
     for (uint32_t row = 0; row < rows; row++) {

@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
   double_t* out_vec = NULL;
   double_t** matrix = NULL;
 
-  uint32_t rows, cols; /* mat(rows x cols) x vec(cols x 1) */
+  uint32_t rows, cols; /* mat(rows x cols) x vec(cols x 1) = res(rows x 1) */
 
   MPI_Init(&argc, &argv);
 
@@ -65,7 +65,8 @@ int main(int argc, char *argv[])
   cols = atoi(argv[2]);
 
   if (comm_size != rows) {
-    fprintf(stderr, "[Error] Number of processes and number of rows should be equal\n");
+    if (rank == 0)
+      fprintf(stderr, "[Error] Number of processes and number of rows should be equal\n");
     goto finalize;
   }
 
@@ -79,16 +80,17 @@ int main(int argc, char *argv[])
   }
 
   if (rank == 0)
-    out_vec = malloc(cols * sizeof(double_t));
+    out_vec = malloc(rows * sizeof(double_t));
 
   if (rank == 0) {
+    printf("\nMatrix (%dx%d):\n", rows, cols);
     for (uint32_t row = 0; row < rows; row++) {
       for (uint32_t col = 0; col < cols; col++) {
         printf("%.2lf ", matrix[row][col]);
       }
       putc('\n', stdout);
     }
-    printf("\nVector: ");
+    printf("Vector (%dx1):\n", cols);
     for (uint32_t col = 0; col < cols; col++) {
       printf("%.2lf ", vec[col]);
     }
@@ -99,9 +101,11 @@ int main(int argc, char *argv[])
 
   mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
 
+  MPI_Barrier(MPI_COMM_WORLD);
   if (rank == 0) {
-    for (uint32_t col = 0; col < cols; col++) {
-      printf("%.4lf ", out_vec[col]);
+    printf("\nResult vector (%dx1):\n", rows);
+    for (uint32_t row = 0; row < rows; row++) {
+      printf("%.4lf ", out_vec[row]);
     }
   }
 

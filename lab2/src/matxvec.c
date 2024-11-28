@@ -35,12 +35,7 @@ double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_
 
 void _row_split_mul(double_t** const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
-  double_t local_res = 0;
-  for (uint32_t col = 0; col < cols; col++)
-  {
-    local_res += matrix[rank][col] * vector[col];
-    /* local_res = _mul_row_by_col(matrix[row], vector, cols); */
-  }
+  double_t local_res = _mul_row_by_col(matrix[rank], vector, cols);
   MPI_Gather(&local_res, 1, MPI_DOUBLE, out, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 }
 

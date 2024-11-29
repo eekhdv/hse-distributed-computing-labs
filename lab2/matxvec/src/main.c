@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 
   // mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
   // mul_mat_by_vec(Column, matrix, vec, out_vec, rows, cols, rank, comm_size);
-  mul_mat_by_vec(Block, matrix, vec, out_vec, rows, cols, rank, comm_size);
+  // mul_mat_by_vec(Block, matrix, vec, out_vec, rows, cols, rank, comm_size);
 
   if (rank == 0) {
     printf("\nResult vector (%dx1):\n", rows);

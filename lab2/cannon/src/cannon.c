@@ -4,9 +4,9 @@
 
 void _cannon_mat_n_mat(double_t* const first_m, double_t* const second_m, double_t* out_m, uint32_t N)
 {
-  for (uint8_t i = 0; i < N; i++) {
-    for (uint8_t j = 0; j < N; j++) {
-      for (uint8_t k = 0; k < N; k++) {
+  for (uint32_t i = 0; i < N; i++) {
+    for (uint32_t j = 0; j < N; j++) {
+      for (uint32_t k = 0; k < N; k++) {
         out_m[i * N + j] += first_m[i * N + k] * second_m[k * N + j];
       }
     }

@@ -44,6 +44,43 @@ void print_usage(char *bin_name)
                 \n  'N'      - matrix size NxN\n", bin_name);
 }
 
+void time_measurement_test()
+{
+  double_t time_start, time_end;
+  double_t* first_matrix;
+  double_t* second_matrix;
+  double_t* out_matrix;
+  uint32_t n;
+
+  for (uint32_t i = 50; i <= 2800; i += 50)
+  {
+    n = i;
+
+    first_matrix  = malloc(n * n * sizeof(double_t*));
+    second_matrix = malloc(n * n * sizeof(double_t*));
+    out_matrix    = malloc(n * n * sizeof(double_t*));
+
+    for (uint32_t row = 0; row < n; row++) {
+      input_vector_row_div(first_matrix  + (n * row), n);
+      input_vector_row_div(second_matrix + (n * row), n);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    time_start = MPI_Wtime();
+    cannon_method(first_matrix, second_matrix, out_matrix, n, rank, comm_size);
+    time_end   = MPI_Wtime();
+
+    if (rank == 0)
+      printf("%d %4d %f\n", comm_size, n, time_end - time_start);
+
+    free(out_matrix);
+    free(second_matrix);
+    free(first_matrix);
+  }
+}
+
+
 int main(int argc, char *argv[])
 {
   double_t* first_matrix  = NULL;
@@ -84,8 +121,8 @@ int main(int argc, char *argv[])
   memset(out_matrix, 0, n * n * sizeof(double_t*));
 
   if (rank == 0) {
-    print_1d_matrix("Matrix 1", first_matrix, n);
-    print_1d_matrix("Matrix 2", second_matrix, n);
+    // print_1d_matrix("Matrix 1", first_matrix, n);
+    // print_1d_matrix("Matrix 2", second_matrix, n);
   }
   /************************/
   MPI_Barrier(MPI_COMM_WORLD);
@@ -93,7 +130,7 @@ int main(int argc, char *argv[])
   cannon_method(first_matrix, second_matrix, out_matrix, n, rank, comm_size);
 
   if (rank == 0)
-    print_1d_matrix("Output Matrix", out_matrix, n);
+    //print_1d_matrix("Output Matrix", out_matrix, n);
 
   /**************************/
   /*** Clean and finilize ***/
@@ -101,6 +138,8 @@ int main(int argc, char *argv[])
   free(first_matrix);
   free(second_matrix);
   free(out_matrix);
+
+  time_measurement_test();
 
 finalize:
   MPI_Finalize();

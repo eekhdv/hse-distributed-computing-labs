@@ -12,7 +12,7 @@ OUT_DIR=bin
 INC=-I$(INC_DIR)/
 
 SRC=$(SRC_DIR)/main.c $(SRC_DIR)/matxvec.c
-OUT=$(OUT_DIR)/main.o
+OUT=$(OUT_DIR)/matxvec.o
 
 all: $(SRC)
 	mkdir -p bin/

@@ -1,4 +1,4 @@
-# Cannon algorithm 
+# Multiplying a matrix by a vector 
 
 ## General
 
@@ -10,7 +10,7 @@ make
 ### How to run 
 ```sh
 cd ./bin
-mpiexec -n <N> ./cannon.o <rows> <cols>
+mpiexec -n <N> ./matxvec.o <rows> <cols>
 # <N>    - The number of processes.
 # <rows> - The number of rows.
 # <cols> - The number of columns.
@@ -20,12 +20,11 @@ mpiexec -n <N> ./cannon.o <rows> <cols>
 
 ### How to build tests
 ```sh
-make tests
+make test
 ```
 
 ### How to run test
 ```sh
 cd ./bin
-mpiexec -n <N> ./cannon.o # <N> - Specify the number of processes.
+mpiexec -n <N> ./matxvec.o # <N> - Specify the number of processes.
 ```
-

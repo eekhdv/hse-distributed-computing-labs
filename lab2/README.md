@@ -11,12 +11,12 @@ Compiler: gcc 14.2.1
 
 ## lab 2
 
-### how to build
+### Multiplying a matrix by a vector 
 ```sh
-make
+cd ./matxvec
 ```
 
-### how to run
+### Cannon algorithm 
 ```sh
-cd bin && ./bin.o
+cd ./cannon
 ```

@@ -18,6 +18,10 @@ all: $(SRC)
 	mkdir -p bin/
 	$(MPICC) $(CFLAGS) $(INC) $(SRC) -o $(OUT)
 
+test: $(SRC)
+	mkdir -p bin/
+	$(MPICC) $(CFLAGS) $(INC) $(SRC) -DTEST -o $(OUT)
+
 PHONY: clean
 
 clean:

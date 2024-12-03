@@ -10,7 +10,6 @@
 #include <time.h>
 
 #include "matxvec.h"
-//#define TEST
 
 int32_t comm_size = -1, rank = -1;
 
@@ -37,87 +36,87 @@ void print_usage(char *bin_name)
 }
 
 #ifdef TEST
-void _row_div_time_measurement_test(uint32_t cols_min, uint32_t cols_max, uint32_t step_size)
+void _row_div_time_measurement_test(uint32_t rows_min, uint32_t rows_max, uint32_t rows_step_size, uint32_t cols_min, uint32_t cols_max, uint32_t cols_step_size)
 {
   double_t time_start, time_end;
   double_t* vec = NULL;
   double_t* out_vec = NULL;
   double_t* matrix = NULL;
-  uint32_t rows = 4;
 
   if (rank == 0)
     printf("Split by rows:\n");
 
-  for (uint32_t cols = cols_min; cols <= cols_max; cols += step_size)
-  {
-    vec = malloc(cols * sizeof(double_t));
-    input_vector(vec, cols);
+  for (uint32_t rows = rows_min; rows <= rows_max; rows += rows_step_size) {
+    for (uint32_t cols = cols_min; cols <= cols_max; cols += cols_step_size) {
+      vec = malloc(cols * sizeof(double_t));
+      input_vector(vec, cols);
 
-    matrix = malloc(rows * cols * sizeof(double_t*));
-    input_vector(matrix, cols * rows);
+      matrix = malloc(rows * cols * sizeof(double_t*));
+      input_vector(matrix, cols * rows);
 
-    if (rank == 0) {
-      out_vec = malloc(rows * sizeof(double_t));
-      memset(out_vec, 0, rows * sizeof(double_t));
+      if (rank == 0) {
+        out_vec = malloc(rows * sizeof(double_t));
+        memset(out_vec, 0, rows * sizeof(double_t));
+      }
+
+      MPI_Barrier(MPI_COMM_WORLD);
+
+      time_start = MPI_Wtime();
+      mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
+      time_end   = MPI_Wtime();
+
+      if (rank == 0)
+        printf("%d %5dx%5d %f\n", comm_size, rows, cols, time_end - time_start);
+
+      free(matrix);
+      free(vec);
+      if (rank == 0)
+        free(out_vec);
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    time_start = MPI_Wtime();
-    mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
-    time_end   = MPI_Wtime();
-
-    if (rank == 0)
-      printf("%d 4x%d %f\n", comm_size, cols, time_end - time_start);
-
-    free(matrix);
-    free(vec);
-    if (rank == 0)
-      free(out_vec);
   }
 }
 
-void _col_div_time_measurement_test(uint32_t rows_min, uint32_t rows_max, uint32_t step_size)
+void _col_div_time_measurement_test(uint32_t rows_min, uint32_t rows_max, uint32_t rows_step_size, uint32_t cols_min, uint32_t cols_max, uint32_t cols_step_size)
 {
   double_t time_start, time_end;
   double_t* vec = NULL;
   double_t* out_vec = NULL;
   double_t* matrix = NULL;
-  uint32_t cols = 4;
 
   if (rank == 0)
     printf("Split by column:\n");
 
-  for (uint32_t rows = rows_min; rows <= rows_max; rows += step_size)
-  {
-    vec = malloc(cols * sizeof(double_t));
-    input_vector(vec, cols);
+  for (uint32_t cols = cols_min; cols <= cols_max; cols += cols_step_size) {
+    for (uint32_t rows = rows_min; rows <= rows_max; rows += rows_step_size) {
+      vec = malloc(cols * sizeof(double_t));
+      input_vector(vec, cols);
 
-    matrix = malloc(cols * rows * sizeof(double_t*));
-    input_vector(matrix, cols * rows);
+      matrix = malloc(cols * rows * sizeof(double_t*));
+      input_vector(matrix, cols * rows);
 
-    if (rank == 0) {
-      out_vec = malloc(rows * sizeof(double_t));
-      memset(out_vec, 0, rows * sizeof(double_t));
+      if (rank == 0) {
+        out_vec = malloc(rows * sizeof(double_t));
+        memset(out_vec, 0, rows * sizeof(double_t));
+      }
+
+      MPI_Barrier(MPI_COMM_WORLD);
+
+      time_start = MPI_Wtime();
+      mul_mat_by_vec(Column, matrix, vec, out_vec, rows, cols, rank, comm_size);
+      time_end   = MPI_Wtime();
+
+      if (rank == 0)
+        printf("%d %5dx%5d %f\n", comm_size, rows, cols, time_end - time_start);
+
+      free(matrix);
+      free(vec);
+      if (rank == 0)
+        free(out_vec);
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    time_start = MPI_Wtime();
-    mul_mat_by_vec(Column, matrix, vec, out_vec, rows, cols, rank, comm_size);
-    time_end   = MPI_Wtime();
-
-    if (rank == 0)
-      printf("%d %8dx4 %f\n", comm_size, rows, time_end - time_start);
-
-    free(matrix);
-    free(vec);
-    if (rank == 0)
-      free(out_vec);
   }
-
 }
-void _block_div_time_measurement_test()
+
+void _block_div_time_measurement_test(uint32_t rows_min, uint32_t rows_max, uint32_t rows_step_size, uint32_t cols_min, uint32_t cols_max, uint32_t cols_step_size)
 {
   double_t time_start, time_end;
   double_t* vec = NULL;
@@ -127,9 +126,9 @@ void _block_div_time_measurement_test()
   if (rank == 0)
     printf("Split by block:\n");
 
-  for (uint32_t rows = 1000; rows <= 200000; rows += 1000)
+  for (uint32_t rows = rows_min; rows <= rows_max; rows += rows_step_size)
   {
-    for (uint32_t cols = 200000; cols >= 1000; cols -= 1000)
+    for (uint32_t cols = cols_max; cols >= cols_min; cols -= cols_step_size)
     {
       vec = malloc(cols * sizeof(double_t));
       input_vector(vec, cols);
@@ -161,9 +160,10 @@ void _block_div_time_measurement_test()
 
 void time_measurement_test()
 {
-  _row_div_time_measurement_test(1000000, 20000000, 1000000);
-  // _col_div_time_measurement_test(1000000, 20000000, 1000000);
-  // _block_div_time_measurement_test();
+  //_row_div_time_measurement_test(1000, 20000, 4000, 1000, 20000, 4000);
+  _col_div_time_measurement_test(1000, 20000, 4000, 1000, 20000, 4000);
+  if (comm_size == 4)
+    _block_div_time_measurement_test(1000, 5000, 400, 1000, 4000, 300);
 }
 #endif
 
@@ -230,8 +230,8 @@ int main(int argc, char *argv[])
   /************************/
   MPI_Barrier(MPI_COMM_WORLD);
 
-  // mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
-  mul_mat_by_vec(Column, matrix, vec, out_vec, rows, cols, rank, comm_size);
+  mul_mat_by_vec(Row, matrix, vec, out_vec, rows, cols, rank, comm_size);
+  // mul_mat_by_vec(Column, matrix, vec, out_vec, rows, cols, rank, comm_size);
   // mul_mat_by_vec(Block, matrix, vec, out_vec, rows, cols, rank, comm_size);
 
   if (rank == 0) {

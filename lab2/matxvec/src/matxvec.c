@@ -45,38 +45,40 @@ void _row_split_mul(double_t* const matrix, const double_t* const vector, double
   uint32_t general_local_rows = rows / comm_size;
   uint32_t local_rows = (rank + 1 == comm_size) ? general_local_rows + rows % comm_size : general_local_rows;
 
-  double_t* local_matrix = malloc(local_rows * cols * sizeof(double_t));
-  double_t* local_res = malloc(local_rows * sizeof(double_t));
+  // double_t* local_matrix = malloc(local_rows * cols * sizeof(double_t));
+  double_t* local_res = malloc(local_rows * 10 * sizeof(double_t));
 
-  memset(local_matrix, 0, local_rows * cols * sizeof(double_t));
+  // memset(local_matrix, 0, local_rows * cols * sizeof(double_t));
   memset(local_res, 0, local_rows * sizeof(double_t));
 
-  int32_t sizes_send[comm_size];
+  // int32_t sizes_send[comm_size];
   int32_t sizes_recv[comm_size];
-  int32_t displ_send[comm_size];
+  // int32_t displ_send[comm_size];
   int32_t displ_recv[comm_size];
 
   for (uint32_t i = 0; i < comm_size; i++)
   {
     uint32_t local_input_sizes = general_local_rows + (i + 1 == comm_size ? rows % comm_size : 0);
-    sizes_send[i] = local_input_sizes * cols;
+  //   sizes_send[i] = local_input_sizes * cols;
     sizes_recv[i] = local_input_sizes;
 
-    displ_send[i] = i * general_local_rows * cols;
+  //   displ_send[i] = i * general_local_rows * cols;
     displ_recv[i] = i * general_local_rows;
   }
 
-  MPI_Scatterv(matrix, sizes_send, displ_send, MPI_DOUBLE, local_matrix, local_rows * cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  // MPI_Scatterv(matrix, sizes_send, displ_send, MPI_DOUBLE, local_matrix, local_rows * cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  uint32_t rows_start = rank * general_local_rows;
+  uint32_t rows_end   = rank * general_local_rows + local_rows;
 
-  for (uint32_t i = 0; i < local_rows; i++)
+  for (uint32_t row = rows_start; row < rows_end; row++)
   {
-    local_res[i] = _mul_row_by_col(local_matrix + i * cols, vector, cols);
+    local_res[row - rows_start] = _mul_row_by_col(matrix + row * cols, vector, cols);
   }
   MPI_Gatherv(local_res, local_rows, MPI_DOUBLE, out, sizes_recv, displ_recv, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
   /* cleanup */
   free(local_res);
-  free(local_matrix);
+  // free(local_matrix);
 }
 
 

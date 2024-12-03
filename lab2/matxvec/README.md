@@ -33,7 +33,7 @@ mpiexec -n <N> ./matxvec.o # <N> - Specify the number of processes.
 
 | division by columns | division by rows |
 | ------------------- | ---------------- |
-| ![division by columns  20000x100000 x2000](https://github.com/user-attachments/assets/87bb5ee7-86f2-42cc-8fa3-cad4f24b5ef8) | ![division by row  2000 100000 x2000](https://github.com/user-attachments/assets/88656af5-cdd0-4153-b3d6-af24ede9107e) |
+| ![division by columns  20000x100000 x2000 (1)](https://github.com/user-attachments/assets/0cc74f2b-748b-469d-9646-f4b55866bfa6) | ![division by row  2000 100000 x2000](https://github.com/user-attachments/assets/88656af5-cdd0-4153-b3d6-af24ede9107e) |
 | ![division by columns 2000x 20000 100000](https://github.com/user-attachments/assets/760d4a34-1d08-4f12-9ac4-47207738dac5) | ![division by row 2000x 20000 100000](https://github.com/user-attachments/assets/ba13db45-6a34-4124-b0ae-0b81e0d45e01) |
 
 | block division |

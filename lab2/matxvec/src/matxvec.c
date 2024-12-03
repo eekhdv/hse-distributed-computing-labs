@@ -1,13 +1,12 @@
-#include "../inc/matxvec.h"
+#include "matxvec.h"
 
 #include <mpi.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-double_t _sum_vec(double_t* const vector, uint32_t n)
+inline double_t _sum_vec(double_t* const vector, uint32_t n)
 {
   double_t res = 0;
 
@@ -17,7 +16,7 @@ double_t _sum_vec(double_t* const vector, uint32_t n)
   return res;
 }
 
-void _mul_col_by_const(double_t* const matrix, double_t* out, double_t* vector, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
+inline void _mul_col_by_const(double_t* const matrix, double_t* out, double_t* vector, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
   uint32_t local_cols = cols / comm_size;
   uint32_t col_start = rank * local_cols;
@@ -32,7 +31,7 @@ void _mul_col_by_const(double_t* const matrix, double_t* out, double_t* vector, 
   }
 }
 
-double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_t n)
+inline double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_t n)
 {
   double_t res = 0;
   for (uint32_t i = 0; i < n; i++) 
@@ -40,49 +39,26 @@ double_t _mul_row_by_col(double_t* const row, const double_t* const col, uint32_
   return res;
 }
 
-void _row_split_mul(double_t* const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
+inline void _row_split_mul(double_t* const matrix, const double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
-  uint32_t general_local_rows = rows / comm_size;
-  uint32_t local_rows = (rank + 1 == comm_size) ? general_local_rows + rows % comm_size : general_local_rows;
+  uint32_t local_rows = rows / comm_size;
 
-  // double_t* local_matrix = malloc(local_rows * cols * sizeof(double_t));
-  double_t* local_res = malloc(local_rows * 10 * sizeof(double_t));
-
-  // memset(local_matrix, 0, local_rows * cols * sizeof(double_t));
+  double_t* local_res = malloc(local_rows * sizeof(double_t));
   memset(local_res, 0, local_rows * sizeof(double_t));
 
-  // int32_t sizes_send[comm_size];
-  int32_t sizes_recv[comm_size];
-  // int32_t displ_send[comm_size];
-  int32_t displ_recv[comm_size];
-
-  for (uint32_t i = 0; i < comm_size; i++)
+  for (uint32_t row = 0; row < local_rows; row++)
   {
-    uint32_t local_input_sizes = general_local_rows + (i + 1 == comm_size ? rows % comm_size : 0);
-  //   sizes_send[i] = local_input_sizes * cols;
-    sizes_recv[i] = local_input_sizes;
-
-  //   displ_send[i] = i * general_local_rows * cols;
-    displ_recv[i] = i * general_local_rows;
+    local_res[row] = _mul_row_by_col(matrix + row * cols, vector, cols);
   }
-
-  // MPI_Scatterv(matrix, sizes_send, displ_send, MPI_DOUBLE, local_matrix, local_rows * cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  uint32_t rows_start = rank * general_local_rows;
-  uint32_t rows_end   = rank * general_local_rows + local_rows;
-
-  for (uint32_t row = rows_start; row < rows_end; row++)
-  {
-    local_res[row - rows_start] = _mul_row_by_col(matrix + row * cols, vector, cols);
-  }
-  MPI_Gatherv(local_res, local_rows, MPI_DOUBLE, out, sizes_recv, displ_recv, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  //MPI_Gather(local_res, local_rows, MPI_DOUBLE, out, local_rows, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Reduce(local_res, out, local_rows, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
   /* cleanup */
   free(local_res);
-  // free(local_matrix);
 }
 
 
-void _column_split_mul(double_t* const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
+inline void _column_split_mul(double_t* const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size)
 {
   double_t* res_vec = malloc(rows * sizeof(double_t));
   memset(res_vec, 0, rows * sizeof(double_t));
@@ -95,7 +71,7 @@ void _column_split_mul(double_t* const matrix, double_t* const vector, double_t*
   free(res_vec);
 }
 
-void _block_split_mul(double_t* const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank)
+inline void _block_split_mul(double_t* const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank)
 {
   uint32_t rows_half = rows / 2;
   uint32_t cols_half = cols / 2;

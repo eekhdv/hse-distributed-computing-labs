@@ -10,7 +10,4 @@ enum split
   Block
 };
 
-#ifdef NOT_CORRECT
-void mul_mat_by_vec(enum split method, double_t** const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size);
-#endif
 void mul_mat_by_vec(enum split method, double_t* const matrix, double_t* const vector, double_t* out, uint32_t rows, uint32_t cols, int32_t rank, int32_t comm_size);
